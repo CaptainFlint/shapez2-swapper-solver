@@ -179,12 +179,16 @@ sub generatePermutations($$$) {
 		}
 		if (!$failed) {
 			++$solutionsFound;
-			print "Found solution:\n" . join(',', @$seq) . ",${rotationStep}\n";
-			my @lanesNew = @{applyRotation($lanes, $rotationStep)};
-			print "  Desired output:  " . join(',', @outputLanes) . "\n";
-			print "  Achieved output: " . join(',', @lanesNew) . "\n";
-			@lanesNew = @{apply(\@inputLanes, [@$seq, $rotationStep])};
-			print "  Recheck output:  " . join(',', @lanesNew) . "\n\n";
+			print '  ' . join(',', @$seq) . ",${rotationStep}\n";
+			# Internal consistency checks
+			my @lanesNew1 = @{applyRotation($lanes, $rotationStep)};
+			my @lanesNew2 = @{apply(\@inputLanes, [@$seq, $rotationStep])};
+			if (!arraysEqual(\@outputLanes, \@lanesNew1) || !arraysEqual(\@outputLanes, \@lanesNew2)) {
+				print "  ERROR! Inconsistent results!\n";
+				print "  Desired output:  " . join(',', @outputLanes) . "\n";
+				print "  Achieved output: " . join(',', @lanesNew1) . "\n";
+				print "  Rebuilt output:  " . join(',', @lanesNew2) . "\n\n";
+			}
 		}
 		print "exit:${dbgHdr}\n" if ($DEBUG);
 		return;
@@ -257,5 +261,8 @@ for (my $swappers = 1; $swappers <= $maxChain; ++$swappers) {
 	my $dtTxt = formatTimeDelta($t2 - $t1);
 	my $cfgCounterTxt = reverse((reverse($cfgCounter) =~ s/(...)/$1./gr) =~ s/\.$//r);
 	print "  Time passed: ${dtTxt}\n  Configurations checked: ${cfgCounterTxt}\n";
-	last if ($solutionsFound);
+	if ($solutionsFound) {
+		print "  Solutions found: ${solutionsFound}\n";
+		last;
+	}
 }
