@@ -8,10 +8,11 @@ my $DEBUG = 0;  # Debug mode
 =begin comment
 
 Usage:
-$ perl solver.pl LANES_IN LANES_OUT [MAX_SWAPS]
+$ perl solver.pl LANES_IN LANES_OUT [MAX_SWAPS] [F]
 LANES_IN - comma-separated list of input shapes, e.g. aaaa,bbcd
 LANES_OUT - comma-separated list of desired output
 MAX_SWAPS - maximum amount of swappers (default: 6)
+F - use flat mode (only neighboring lanes are swapped)
 
 
 Notations
@@ -47,7 +48,7 @@ The final rotation-only step can be present. Its format is: 'rXYZ...' where:
 =cut
 
 if (scalar(@ARGV) < 2) {
-	print "Usage: solver.pl LANES_IN LANES_OUT [MAX_SWAPS]\n";
+	print "Usage: solver.pl LANES_IN LANES_OUT [MAX_SWAPS] [F]\n";
 	exit 1;
 }
 # Shapes on the input lanes
@@ -55,7 +56,20 @@ my @inputLanes  = split(m/,/, $ARGV[0]);
 # The desired output
 my @outputLanes = split(m/,/, $ARGV[1]);
 # Maximum amount of operations in the chain
-my $maxChain = ($ARGV[2] || 6);
+my $maxChain = 6;
+# Whether flat mode is used
+my $flatMode = 0;
+
+for my $a (@ARGV[2..3]) {
+	if (defined($a)) {
+		if (lc($a) eq 'f') {
+			$flatMode = 1;
+		}
+		elsif ($a =~ m/^\d+$/) {
+			$maxChain = $a;
+		}
+	}
+}
 
 my $MODE = length($inputLanes[0]);
 
@@ -195,7 +209,14 @@ sub generatePermutations($$$) {
 	}
 	# Enumerate possible swapper positions
 	for (my $l1 = 0; $l1 < scalar(@inputLanes) - 1; ++$l1) {
-		for (my $l2 = $l1 + 1; $l2 < scalar(@inputLanes); ++$l2) {
+		my @secondLanes = ();
+		if ($flatMode) {
+			@secondLanes = ($l1 + 1);
+		}
+		else {
+			@secondLanes = ($l1 + 1 .. $#inputLanes);
+		}
+		for my $l2 (@secondLanes) {
 			# Exclude rotations with identical results
 			my %rotations1 = ();
 			my %rotations2 = ();
