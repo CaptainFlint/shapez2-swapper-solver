@@ -48,7 +48,7 @@ The final rotation-only step can be present. Its format is: 'rXYZ...' where:
 =cut
 
 if (scalar(@ARGV) < 2) {
-	print "Usage: solver.pl LANES_IN LANES_OUT [MAX_SWAPS] [F]\n";
+	print "Usage: solver.pl INPUT_SHAPES OUTPUT_SHAPES [MAX_SWAPPERS] [F]\n";
 	exit 1;
 }
 # Shapes on the input lanes
